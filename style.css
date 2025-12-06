@@ -1,0 +1,92 @@
+body {
+    background-color: #0f1229;
+    color: #cccccc;
+    font-family: "Source Code Pro", monospace;
+    font-weight: 300;
+    font-size: 14pt;
+    padding: 10px;
+
+    display: grid;
+    place-items: center;
+}
+
+div {
+    margin-bottom: 10px;
+}
+
+button {
+    background-color: lightyellow;
+    color: black;
+    cursor: pointer;
+    border: solid yellow 2px;
+    border-radius: 8px;
+    font-family: "Source Code Pro", monospace;
+    font-weight: 300;
+    font-size: 14pt;
+}
+button:disabled {
+    background-color: navy;
+    color: gray;
+    border: solid transparent 2px;
+}
+
+.cell {
+    cursor: crosshair;
+    background-color: black;
+    font-family: sans-serif;
+    font-weight: 1000;
+    text-align: center;
+    border: solid yellow 0px;
+    padding: 3pt 8pt 3pt 8pt;
+    user-select: none;
+    width: 13pt;
+}
+
+table {
+    background-color: black;
+    padding: 3px;
+    border: solid yellow 2px;
+    border-radius: 8px;
+}
+
+.x {
+    background-color: navy;
+    color: white;
+}
+.changing {
+    background-color: orangered;
+    color: white;
+}
+.marked {
+    background-color: blue;
+    color: white;
+}
+.selected {
+    background-color: greenyellow;
+    color: black;
+}
+
+.disclaimer {
+    font-size: small;
+}
+.no-select {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE 10+ */
+    user-select: none;         /* Standard */
+}
+
+/* unvisited link */
+a:link {
+    color: lightyellow;
+}
+/* visited link */
+a:visited {
+    color: lightyellow;
+}
+a:hover {
+    color: white;
+}
+a:active {
+    color: yellow;
+} 

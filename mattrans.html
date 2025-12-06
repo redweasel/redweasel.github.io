@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script>
+            var SIZE = 12;
+            var MODE = "0";
+            var SYM = true;
+            var cellpos = [0, 0];
+            var markedpos = undefined;
+            let matrix = document.getElementById("matrix");
+            function reset_hover() {
+                const table_cells = document.getElementsByTagName("td");
+                for (var i = 0; i < table_cells.length; i += 1) {
+                    if (table_cells[i].innerHTML == "0") {
+                        table_cells[i].className = "cell";
+                    }
+                    else if (table_cells[i].innerHTML == "X") {
+                        table_cells[i].className = "cell x";
+                    }
+                }
+            }
+            function reset_matrix() {
+                const table_cells = document.getElementsByTagName("td");
+                for (var i = 0; i < table_cells.length; i += 1) {
+                    table_cells[i].innerHTML = "X";
+                    table_cells[i].className = "cell x";
+                }
+            }
+            function build_matrix() {
+                let matrix = document.getElementById("matrix");
+                matrix.innerHTML = "";
+                while (matrix.firstChild) {
+                    matrix.removeChild(matrix.firstChild);
+                }
+                for (var x = 0; x < SIZE; x += 1) {
+                    const div = document.createElement('tr');
+                    for (var y = 0; y < SIZE; y += 1) {
+                        const div2 = document.createElement('td');
+                        div2.className = "cell x";
+                        div2.id = `${x},${y}`;
+                        div2.innerHTML = "X";
+                        div.appendChild(div2);
+                    }
+                    matrix.appendChild(div);
+                }
+                const table_cells = document.getElementsByTagName("td");
+                for (var i = 0; i < table_cells.length; i += 1) {
+                    table_cells[i].addEventListener("mouseover", function(e) {
+                        const rc = e.srcElement.id.split(",");
+                        const row = Number(rc[0]);
+                        const col = Number(rc[1]);
+                        cellpos = [row, col];
+                        //e.srcElement.innerHTML = "0";
+                        const table_cells = document.getElementsByTagName("td");
+                        for (var i = 0; i < table_cells.length; i += 1) {
+                            const rc = table_cells[i].id.split(",");
+                            const row2 = Number(rc[0]);
+                            const col2 = Number(rc[1]);
+                            let cond;
+                            let cond2 = false;
+                            if (MODE == "0") {
+                                cond = row2 == row && col2 == col;
+                                if (SYM) {
+                                    cond |= row2 == col && col2 == row;
+                                }
+                            } else if (MODE == "X") {
+                                cond = row2 == row && col2 == col;
+                                if (SYM) {
+                                    cond |= row2 == col && col2 == row;
+                                }
+                            } else if (MODE == "G" || MODE == "S") {
+                                if (!SYM) {
+                                    if (markedpos != undefined) {
+                                        if (Math.abs(cellpos[0] - markedpos[0]) < Math.abs(cellpos[1] - markedpos[1])) {
+                                            cond = col2 == col || col2 == markedpos[1];
+                                            cond2 = row2 == markedpos[0] && col2 == col;
+                                        }
+                                        else if (Math.abs(cellpos[0] - markedpos[0]) > Math.abs(cellpos[1] - markedpos[1])) {
+                                            cond = row2 == row || row2 == markedpos[0];
+                                            cond2 = row2 == row && col2 == markedpos[1];
+                                        }
+                                    }
+                                    else {
+                                        cond = row2 == row || col2 == col;
+                                    }
+                                }
+                                else {
+                                    if (markedpos != undefined) {
+                                        cond2 = col2 == markedpos[1] && row2 == row;
+                                        cond = col2 == markedpos[0] || row2 == markedpos[0] || row2 == row || col2 == row;
+                                    }
+                                    else {
+                                        cond = row2 == row || col2 == row;
+                                    }
+                                }
+                            } else if (MODE == "HR") {
+                                if (SYM) {
+                                    cond = row2 == row && col2 < col;
+                                    cond2 = row2 == row && col2 == col;
+                                    cond |= col2 == row && row2 < col;
+                                    cond2 |= row2 == col && col2 == row;
+                                }
+                                else {
+                                    cond = row2 == row && col2 > col;
+                                    cond2 = row2 == row && col2 == col;
+                                }
+                            } else if (MODE == "HC") {
+                                if (SYM) {
+                                    cond = row2 == col && col2 > row;
+                                    cond2 = row2 == col && col2 == row;
+                                    cond |= col2 == col && row2 > row;
+                                    cond2 |= row2 == row && col2 == col;
+                                }
+                                else {
+                                    cond = col2 == col && row2 > row;
+                                    cond2 = row2 == row && col2 == col;
+                                }
+                            } else if (MODE == "D") {
+                                cond2 = [col, row].includes(col2) && [col, row].includes(row2);
+                                cond = [col, row].includes(col2) || [col, row].includes(row2);
+                            }
+                            if (cond2) {
+                                table_cells[i].className = "cell changing";
+                            }
+                            else if (cond) {
+                                table_cells[i].className = "cell selected";
+                            }
+                            else if (table_cells[i].innerHTML == "0") {
+                                table_cells[i].className = "cell";
+                            }
+                            else if (table_cells[i].innerHTML == "X") {
+                                table_cells[i].className = "cell x";
+                            }
+                            if (markedpos != undefined) {
+                                if (row2 == markedpos[0] && col2 == markedpos[1]) {
+                                    table_cells[i].className = "cell marked";
+                                }
+                            }
+                        }
+                        //console.log(`${row} ${col}`);
+                    });
+                }
+                markedpos = undefined;
+            }
+            function inc_size() {
+                SIZE += 1;
+                build_matrix();
+            }
+            function dec_size() {
+                if (SIZE > 2) {
+                    SIZE -= 1;
+                    build_matrix();
+                }
+            }
+            function toggle_sym(e) {
+                SYM = !SYM;
+                if (SYM) {
+                    e.srcElement.className = "selected";
+                    reset_matrix(); // need to ensure symmetry here
+                    if (MODE == "S") {
+                        set_mode("0");
+                    }
+                }
+                else {
+                    e.srcElement.className = "";
+                }
+                document.getElementById("S").disabled = SYM;
+            }
+            function get_cell(pos) {
+                const cell = document.getElementById(`${pos[0]},${pos[1]}`);
+                return cell.innerHTML;
+            }
+            function set_cell(pos, value) {
+                const cell = document.getElementById(`${pos[0]},${pos[1]}`);
+                cell.innerHTML = value;
+                if (cell.className == "cell" && value == "X") {
+                    cell.className = "cell x";
+                } else if (cell.className == "cell x" && value == "0") {
+                    cell.className = "cell";
+                }
+            }
+            function mark_cell(pos) {
+                const cell = document.getElementById(`${pos[0]},${pos[1]}`);
+                cell.className = "cell marked";
+                markedpos = [pos[0], pos[1]];
+            }
+            function set_mode(mode) {
+                const buttons = document.getElementsByClassName("tab");
+                for (var i = 0; i < buttons.length; i += 1) {
+                    if (buttons[i].id == mode) {
+                        buttons[i].className = "tab selected";
+                    }
+                    else {
+                        buttons[i].className = "tab";
+                    }
+                }
+                reset_hover();
+                MODE = mode;
+                markedpos = undefined;
+            }
+            function householder_left(pos) {
+                let occupied = false;
+                for (var j = pos[0] + 1; j < SIZE; j += 1) {
+                    if (get_cell([j, pos[1]]) == "X") {
+                        occupied = true;
+                        break;
+                    }
+                }
+                if (!occupied) {
+                    return; // nothing to change
+                }
+                for (var i = 0; i < SIZE; i += 1) {
+                    if (i == pos[1]) {
+                        continue;
+                    }
+                    let occupied = false;
+                    for (var j = pos[0]; j < SIZE; j += 1) {
+                        if (get_cell([j, i]) == "X" && get_cell([j, pos[1]]) == "X") {
+                            occupied = true;
+                            break;
+                        }
+                    }
+                    if (occupied) {
+                        for (var j = pos[0]; j < SIZE; j += 1) {
+                            if (get_cell([j, pos[1]]) == "X") {
+                                set_cell([j, i], "X");
+                            }
+                        }
+                    }
+                }
+                for (var j = pos[0] + 1; j < SIZE; j += 1) {
+                    set_cell([j, pos[1]], "0");
+                }
+                set_cell(pos, "X");
+            }
+            function householder_right(pos) {
+                let occupied = false;
+                for (var j = pos[1] + 1; j < SIZE; j += 1) {
+                    if (get_cell([pos[0], j]) == "X") {
+                        occupied = true;
+                        break;
+                    }
+                }
+                if (!occupied) {
+                    return; // nothing to change
+                }
+                for (var i = 0; i < SIZE; i += 1) {
+                    if (i == pos[0]) {
+                        continue;
+                    }
+                    let occupied = false;
+                    for (var j = pos[1]; j < SIZE; j += 1) {
+                        if (get_cell([i, j]) == "X" && get_cell([pos[0], j]) == "X") {
+                            occupied = true;
+                            break;
+                        }
+                    }
+                    if (occupied) {
+                        for (var j = pos[1]; j < SIZE; j += 1) {
+                            if (get_cell([pos[0], j]) == "X") {
+                                set_cell([i, j], "X");
+                            }
+                        }
+                    }
+                }
+                for (var j = pos[1] + 1; j < SIZE; j += 1) {
+                    set_cell([pos[0], j], "0");
+                }
+                set_cell(pos, "X");
+            }
+            function householder_left_inv(pos) {
+                let occupied = false;
+                for (var j = 0; j < pos[0]; j += 1) {
+                    if (get_cell([j, pos[1]]) == "X") {
+                        occupied = true;
+                        break;
+                    }
+                }
+                if (!occupied) {
+                    return; // nothing to change
+                }
+                for (var i = 0; i < SIZE; i += 1) {
+                    if (i == pos[1]) {
+                        continue;
+                    }
+                    let occupied = false;
+                    for (var j = 0; j <= pos[0]; j += 1) {
+                        if (get_cell([j, i]) == "X" && get_cell([j, pos[1]]) == "X") {
+                            occupied = true;
+                            break;
+                        }
+                    }
+                    if (occupied) {
+                        for (var j = 0; j <= pos[0]; j += 1) {
+                            if (get_cell([j, pos[1]]) == "X") {
+                                set_cell([j, i], "X");
+                            }
+                        }
+                    }
+                }
+                for (var j = 0; j < pos[0]; j += 1) {
+                    set_cell([j, pos[1]], "0");
+                }
+                set_cell(pos, "X");
+            }
+            function householder_right_inv(pos) {
+                let occupied = false;
+                for (var j = 0; j < pos[1]; j += 1) {
+                    if (get_cell([pos[0], j]) == "X") {
+                        occupied = true;
+                        break;
+                    }
+                }
+                if (!occupied) {
+                    return; // nothing to change
+                }
+                for (var i = 0; i < SIZE; i += 1) {
+                    if (i == pos[0]) {
+                        continue;
+                    }
+                    let occupied = false;
+                    for (var j = 0; j <= pos[1]; j += 1) {
+                        if (get_cell([i, j]) == "X" && get_cell([pos[0], j]) == "X") {
+                            occupied = true;
+                            break;
+                        }
+                    }
+                    if (occupied) {
+                        for (var j = 0; j <= pos[1]; j += 1) {
+                            if (get_cell([pos[0], j]) == "X") {
+                                set_cell([i, j], "X");
+                            }
+                        }
+                    }
+                }
+                for (var j = 0; j < pos[1]; j += 1) {
+                    set_cell([pos[0], j], "0");
+                }
+                set_cell(pos, "X");
+            }
+            function click_table(e) {
+                const table_cell = document.getElementById(`${cellpos[0]},${cellpos[1]}`);
+                {
+                    if (MODE == "0") {
+                        set_cell(cellpos, "0");
+                        if (SYM) {
+                            set_cell([cellpos[1], cellpos[0]], "0");
+                        }
+                    } else if (MODE == "X") {
+                        set_cell(cellpos, "X");
+                        if (SYM) {
+                            set_cell([cellpos[1], cellpos[0]], "X");
+                        }
+                    } else if (MODE == "G") {
+                        if (markedpos === undefined) {
+                            if (table_cell.innerHTML == "X") {
+                                mark_cell(cellpos);
+                                return;
+                            }
+                        }
+                        else if (!SYM) {
+                            if (Math.abs(cellpos[0] - markedpos[0]) < Math.abs(cellpos[1] - markedpos[1])) {
+                                let swap = get_cell([markedpos[0], cellpos[1]]) == "0"; // in this case the givens rotation is a swap
+                                for (var i = 0; i < SIZE; i += 1) {
+                                    let a = get_cell([i, cellpos[1]]) == "X";
+                                    let b = get_cell([i, markedpos[1]]) == "X";
+                                    if (a || b) {
+                                        if (swap) {
+                                            set_cell([i, cellpos[1]], b ? "X" : "0");
+                                            set_cell([i, markedpos[1]], a ? "X" : "0");
+                                        }
+                                        else {
+                                            set_cell([i, cellpos[1]], "X");
+                                            set_cell([i, markedpos[1]], "X");
+                                        }
+                                    }
+                                }
+                                set_cell(markedpos, "0");
+                            }
+                            else if (Math.abs(cellpos[0] - markedpos[0]) > Math.abs(cellpos[1] - markedpos[1])) {
+                                let swap = get_cell([cellpos[0], markedpos[1]]) == "0"; // in this case the givens rotation is a swap
+                                for (var i = 0; i < SIZE; i += 1) {
+                                    let a = get_cell([cellpos[0], i]) == "X";
+                                    let b = get_cell([markedpos[0], i]) == "X";
+                                    if (a || b) {
+                                        if (swap) {
+                                            set_cell([cellpos[0], i], b ? "X" : "0");
+                                            set_cell([markedpos[0], i], a ? "X" : "0");
+                                        }
+                                        else {
+                                            set_cell([cellpos[0], i], "X");
+                                            set_cell([markedpos[0], i], "X");
+                                        }
+                                    }
+                                }
+                                set_cell(markedpos, "0");
+                            }
+                            // end/abort action
+                            markedpos = undefined;
+                        }
+                        else if (SYM && cellpos[0] != markedpos[0]) {
+                            let swap = get_cell([cellpos[0], markedpos[1]]) == "0"; // in this case the givens rotation is a swap
+                            // mixes the entire columns and rows
+                            for (var i = 0; i < SIZE; i += 1) {
+                                let a = get_cell([cellpos[0], i]) == "X";
+                                let b = get_cell([markedpos[0], i]) == "X";
+                                if (a || b) {
+                                    if (swap) {
+                                        set_cell([cellpos[0], i], b ? "X" : "0");
+                                        set_cell([markedpos[0], i], a ? "X" : "0");
+                                    }
+                                    else {
+                                        set_cell([cellpos[0], i], "X");
+                                        set_cell([markedpos[0], i], "X");
+                                    }
+                                }
+                            }
+                            for (var i = 0; i < SIZE; i += 1) {
+                                let a = get_cell([i, cellpos[0]]) == "X";
+                                let b = get_cell([i, markedpos[0]]) == "X";
+                                if (a || b) {
+                                    if (swap) {
+                                        set_cell([i, cellpos[0]], b ? "X" : "0");
+                                        set_cell([i, markedpos[0]], a ? "X" : "0");
+                                    }
+                                    else {
+                                        set_cell([i, cellpos[0]], "X");
+                                        set_cell([i, markedpos[0]], "X");
+                                    }
+                                }
+                            }
+                            set_cell(markedpos, "0");
+                            set_cell([markedpos[1], markedpos[0]], "0");
+                            markedpos = undefined;
+                        }
+                        else {
+                            // abort action
+                            markedpos = undefined;
+                        }
+                    } else if (MODE == "S") {
+                        if (markedpos === undefined) {
+                            if (table_cell.innerHTML == "X") {
+                                mark_cell(cellpos);
+                                return;
+                            }
+                        }
+                        else if (!SYM) {
+                            if (Math.abs(cellpos[0] - markedpos[0]) < Math.abs(cellpos[1] - markedpos[1])) {
+                                if (get_cell([markedpos[0], cellpos[1]]) == "X") {
+                                    for (var i = 0; i < SIZE; i += 1) {
+                                        if (get_cell([i, cellpos[1]]) == "X") {
+                                            set_cell([i, markedpos[1]], "X");
+                                        }
+                                    }
+                                    set_cell(markedpos, "0");
+                                }
+                            }
+                            else if (Math.abs(cellpos[0] - markedpos[0]) > Math.abs(cellpos[1] - markedpos[1])) {
+                                if (get_cell([cellpos[0], markedpos[1]]) == "X") {
+                                    for (var i = 0; i < SIZE; i += 1) {
+                                        if (get_cell([cellpos[0], i]) == "X") {
+                                            set_cell([markedpos[0], i], "X");
+                                        }
+                                    }
+                                    set_cell(markedpos, "0");
+                                }
+                            }
+                            // end/abort action
+                            markedpos = undefined;
+                        }
+                        else if (SYM && get_cell([cellpos[0], markedpos[1]]) == "X" && cellpos[0] != markedpos[0]) {
+                            // mixes the entire columns and rows
+                            for (var i = 0; i < SIZE; i += 1) {
+                                if (get_cell([cellpos[0], i]) == "X") {
+                                    set_cell([markedpos[0], i], "X");
+                                }
+                            }
+                            for (var i = 0; i < SIZE; i += 1) {
+                                if (get_cell([i, cellpos[0]]) == "X") {
+                                    set_cell([i, markedpos[0]], "X");
+                                }
+                            }
+                            set_cell(markedpos, "0");
+                            set_cell([markedpos[1], markedpos[0]], "0");
+                            markedpos = undefined;
+                        }
+                        else {
+                            // abort action
+                            markedpos = undefined;
+                        }
+                    } else if (MODE == "HR") {
+                        if ((!SYM && cellpos[1] < SIZE - 1 || SYM && cellpos[1] > 0) && (!SYM || cellpos[1] < cellpos[0])) {
+                            if (SYM) {
+                                householder_right_inv(cellpos);
+                                householder_left_inv([cellpos[1], cellpos[0]]);
+                            }
+                            else {
+                                householder_right(cellpos);
+                            }
+                        }
+                    } else if (MODE == "HC") {
+                        if (cellpos[0] < SIZE - 1 && (!SYM || cellpos[1] < cellpos[0])) {
+                            householder_left(cellpos);
+                            if (SYM) {
+                                householder_right([cellpos[1], cellpos[0]]);
+                            }
+                        }
+                    } else if (MODE == "D") {
+                        if (cellpos[0] != cellpos[1] && (table_cell.innerHTML == "X" || get_cell([cellpos[1], cellpos[0]]) == "X")) {
+                            // mixes the entire columns and rows
+                            for (var i = 0; i < SIZE; i += 1) {
+                                if (get_cell([cellpos[0], i]) == "X" || get_cell([cellpos[1], i]) == "X") {
+                                    set_cell([cellpos[0], i], "X");
+                                    set_cell([cellpos[1], i], "X");
+                                }
+                                if (get_cell([i, cellpos[0]]) == "X" || get_cell([i, cellpos[1]]) == "X") {
+                                    set_cell([i, cellpos[0]], "X");
+                                    set_cell([i, cellpos[1]], "X");
+                                }
+                            }
+                            set_cell([cellpos[1], cellpos[0]], "0");
+                            table_cell.innerHTML = "0";
+                        }
+                    }
+                    reset_hover();
+                }
+            }
+            document.addEventListener("DOMContentLoaded", function(e) {
+                build_matrix();
+                document.getElementById("S").disabled = SYM; // otherwise refresh somehow doesn't work...
+            });
+
+        </script>
+    </head>
+    <body>
+        <h2>Matrix Transformation</h2>
+        <div class="no-select">
+        <button class="selected" onclick="toggle_sym(event)">Symmetric</button>
+        <button onclick="dec_size()">-</button>
+        <button onclick="inc_size()">+</button>
+        </div>
+        <div class="no-select">
+            <button class="tab selected" id="0" onclick="set_mode('0')">0</button>
+            <button class="tab" id="X" onclick="set_mode('X')">X</button>
+            <button class="tab" id="G" onclick="set_mode('G')">Givens</button>
+            <button class="tab" id="HR" onclick="set_mode('HR')">Householder R</button>
+            <button class="tab" id="HC" onclick="set_mode('HC')">H.C</button>
+            <button class="tab" id="D" onclick="set_mode('D')">Diag.</button>
+            <button class="tab" id="S" disabled="true" onclick="set_mode('S')">Gauß</button>
+        </div>
+        <table class="no-select" id="matrix" onclick="click_table(event)" onmouseleave="reset_hover()">
+        </table>
+        <p class="disclaimer">Disclaimer: Some [X] might be [0] due to mathematical reasons, which are not displayed here.</p>
+    </body>
+</html>
