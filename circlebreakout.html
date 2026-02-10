@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script>
+            var paddle_angle = 0.0;
+            var mousepos = (0.0, 0.0);
+            function mousemove(evt) {
+                var rect = canvas.getBoundingClientRect();
+                mousepos = [evt.clientX - rect.left, evt.clientY - rect.top];
+                paddle_angle = Math.atan2(-(mousepos[0] - rect.width/2), mousepos[1] - rect.height/2);
+            }
+            function dot(v1, v2) {
+                return v1[0] * v2[0] + v1[1] * v2[1];
+            }
+            function reflect(v1, v2) {
+                let d = 2.0 * dot(v1, v2) / dot(v2, v2);
+                return [v1[0] - v2[0] * d, v1[1] - v2[1] * d];
+            }
+            function edge_collision(p, v, a, b) {
+                let pa = [p[0]-a[0], p[1]-a[1]];
+                let ba = [b[0]-a[0], b[1]-a[1]];
+                let h = Math.min(Math.max(dot(pa, ba)/dot(ba, ba), 0.0), 1.0);
+                let d = [pa[0] - ba[0]*h, pa[1] - ba[1]*h];
+                if (dot(v, d) < 0.0) {
+                    v = reflect(v, d);
+                }
+                return [Math.sqrt(dot(d, d)), v];
+            }
+            function arc_collision(p, v, r, angle_start, angle_width) {
+                // compute closest on circle, then clamp the angle correctly
+                var angle = (Math.atan2(p[1], p[0]) - angle_start + 6.283*2.5 - angle_width / 2.0) % 6.283 - 3.1415;
+                angle = Math.min(Math.max(angle, -angle_width/2.), angle_width/2.);
+                angle = angle + angle_start + angle_width / 2.0;
+                let c = [Math.cos(angle) * r, Math.sin(angle) * r];
+                let d = [p[0] - c[0], p[1] - c[1]];
+                if (dot(v, d) < 0.0) {
+                    v = reflect(v, d);
+                }
+                return [Math.sqrt(dot(d, d)), v];
+            }
+            var plop_audio = new Audio('plop.ogg'); // theoretically one should use the WebAudio API...
+            var click_audio = new Audio('click.ogg');
+            var canvas;
+            function start(e) {
+                canvas.onclick = undefined;
+                var paddle_width = 3.0;
+                var paddle_radius = 0.25;
+                let outer_radius = 9.7;
+                var display_scale = 10.0;
+                var outer_collision_radius = 9.5;
+                var inner_collision_radius = 0.5;
+                var ball_radius = 0.5;
+                var ball = [0.0, 1.0];
+                var ball_velo = [0.0, 1.0];
+                var ball_speed = 11.3;
+                var tiles = [];
+                var game_over = false;
+                var timer = 60.0;
+                // fill tiles randomly
+                for (var i = 1; i < 7; i++) {
+                    let offset = Math.random();
+                    let r = outer_radius - i;
+                    let num = Math.floor(Math.random() * 10 + 10);
+                    for (var j = 0; j < num; j++) {
+                        let angle1 = j/num*6.283 + offset;
+                        let angle2 = (j+1-num/8/r)/num*6.283 + offset;
+                        tiles.push([r, 0.25, angle1, angle2]);
+                    }
+                }
+                var last_time = 0.0;
+                function step(timestamp) {
+                    let dt = Math.min(timestamp - last_time, 30.0) / 1000.0; // in s
+                    last_time = timestamp;
+                    timer -= dt;
+                    if (timer < 0.0) {
+                        timer = 0.0;
+                        game_over = true;
+                    }
+
+                    // update the ball
+                    ball[0] += ball_velo[0] * ball_speed * dt;
+                    ball[1] += ball_velo[1] * ball_speed * dt;
+                    let r = outer_collision_radius - ball_radius;
+                    if (dot(ball, ball) >= r*r && dot(ball, ball_velo) > 0.0) {
+                        ball_velo = reflect(ball_velo, ball);
+                        click_audio.play();
+                    }
+                    let a = [Math.cos(paddle_angle)*paddle_width, Math.sin(paddle_angle)*paddle_width];
+                    let d__new_v = edge_collision(ball, ball_velo, a, [-a[0], -a[1]]);
+                    if (d__new_v[0] < ball_radius + paddle_radius) {
+                        ball_velo = d__new_v[1];
+                        click_audio.play();
+                    }
+                    // now handle the collisions with all tiles (naively)
+                    for (var i = 0; i < tiles.length; i++) {
+                        let d__new_v = arc_collision(ball, ball_velo, tiles[i][0], tiles[i][2], tiles[i][3] - tiles[i][2]);
+                        if (d__new_v[0] < ball_radius + tiles[i][1]) {
+                            ball_velo = d__new_v[1];
+                            tiles[i] = tiles[tiles.length - 1];
+                            tiles.splice(tiles.length - 1, 1);
+                            plop_audio.pause();
+                            plop_audio.currentTime = 0;
+                            plop_audio.play();
+                        }
+                    }
+                    let norm = Math.sqrt(dot(ball_velo, ball_velo));
+                    ball_velo[0] /= norm;
+                    ball_velo[1] /= norm;
+
+                    canvas.width  = window.innerWidth;
+                    canvas.height = window.innerHeight - 5.0; // why does this happen?
+                    var ctx = canvas.getContext("2d");
+                    display_scale = Math.min(canvas.width, canvas.height)/20.0;
+                    function circle(r, color, thick) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, display_scale * r, 0.0, 6.283);
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = display_scale * thick;
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    circle(outer_radius, "grey", 0.5);
+                    circle(outer_radius, "white", 0.25);
+                    // draw timer
+                    let timer_text = "0" + timer.toFixed(2) + "s";
+                    ctx.rotate(-0.9);
+                    for (var i = timer_text.length - 6; i < timer_text.length; i++) {
+                        ctx.rotate(0.06);
+                        ctx.font = `${display_scale}px mono`;
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "white";
+                        ctx.fillText(timer_text[i], 0, -canvas.height/2 - display_scale*.3);
+                    }
+                    // draw tiles left
+                    let tiles_text = "  " + tiles.length + " left";
+                    ctx.rotate(1.1);
+                    for (var i = tiles_text.length - 8; i < tiles_text.length; i++) {
+                        ctx.rotate(0.06);
+                        ctx.font = `${display_scale}px mono`;
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "white";
+                        ctx.fillText(tiles_text[i], 0, -canvas.height/2 - display_scale*.3);
+                    }
+                    ctx.resetTransform();
+                    // draw paddle
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(paddle_angle);
+                    ctx.beginPath();
+                    ctx.moveTo(-display_scale * paddle_width, 0);
+                    ctx.lineWidth = display_scale * paddle_radius * 2.0;
+                    ctx.lineCap = "round";
+                    ctx.lineTo(display_scale * paddle_width, 0);
+                    ctx.strokeStyle = "grey";
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-display_scale * paddle_width, 0);
+                    ctx.lineWidth = display_scale * (paddle_radius * 2.0 - 0.25);
+                    ctx.lineCap = "round";
+                    ctx.lineTo(display_scale * paddle_width, 0);
+                    ctx.strokeStyle = "white";
+                    ctx.stroke();
+                    ctx.resetTransform();
+                    // draw the ball (TODO make a bit elliptical to show the movement direction!)
+                    ctx.translate(canvas.width/2 + ball[0]*display_scale, canvas.height/2 + ball[1]*display_scale);
+                    circle(ball_radius - 0.125, "red", 0.25);
+                    circle(ball_radius/2 - 0.125, "orange", ball_radius);
+                    ctx.resetTransform();
+                    // draw tiles
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    for (var i = 0; i < tiles.length; i++) {
+                        ctx.beginPath();
+                        ctx.lineCap = "round"
+                        ctx.strokeStyle = "green";
+                        ctx.lineWidth = display_scale * tiles[i][1] * 2.;
+                        ctx.arc(0, 0, display_scale * tiles[i][0], tiles[i][2], tiles[i][3]);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.lineCap = "round"
+                        ctx.strokeStyle = "lime";
+                        ctx.lineWidth = display_scale * (tiles[i][1] * 2. - 0.25);
+                        ctx.arc(0, 0, display_scale * tiles[i][0], tiles[i][2], tiles[i][3]);
+                        ctx.stroke();
+                    }
+                    ctx.resetTransform();
+                    if (game_over) {
+                        ctx.font = `${display_scale*3}px serif`;
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.lineJoin = "round";
+                        ctx.lineCap = "round";
+                        ctx.lineWidth = display_scale*0.5;
+                        ctx.strokeStyle = "darkred";
+                        ctx.strokeText("Game Over", canvas.width/2, canvas.height/2);
+                        ctx.lineWidth = display_scale*0.25;
+                        ctx.strokeStyle = "white";
+                        ctx.strokeText("Game Over", canvas.width/2, canvas.height/2);
+                        ctx.fillStyle = "black";
+                        ctx.fillText("Game Over", canvas.width/2, canvas.height/2);
+                        canvas.onclick = start;
+                    }
+                    else if (tiles.length > 0) {
+                        requestAnimationFrame(step);
+                    }
+                    else {
+                        ctx.font = `${display_scale*3}px serif`;
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.lineJoin = "round";
+                        ctx.lineCap = "round";
+                        ctx.lineWidth = display_scale*0.5;
+                        ctx.strokeStyle = "lime";
+                        ctx.strokeText("You Win", canvas.width/2, canvas.height/2);
+                        ctx.lineWidth = display_scale*0.25;
+                        ctx.strokeStyle = "green";
+                        ctx.strokeText("You Win", canvas.width/2, canvas.height/2);
+                        ctx.fillStyle = "white";
+                        ctx.fillText("You Win", canvas.width/2, canvas.height/2);
+                        canvas.onclick = start;
+                    }
+                }
+                requestAnimationFrame(step);
+            }
+            function draw_click_to_start(e) {
+                canvas = document.getElementById("canvas");
+                canvas.width  = window.innerWidth;
+                canvas.height = window.innerHeight - 5.0; // why does this happen?
+                var ctx = canvas.getContext("2d");
+                display_scale = Math.min(canvas.width, canvas.height)/20.0;
+                ctx.font = `${display_scale*3}px serif`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "white";
+                ctx.fillText("Click to start", canvas.width/2, canvas.height/2);
+            }
+            document.addEventListener("DOMContentLoaded", draw_click_to_start);
+        </script>
+    </head>
+    <body style="margin: 0px; padding: 0px;">
+        <div style="align-self: center; margin: 0px; padding: 0px;">
+            <canvas id="canvas" style="margin: 0px; padding: 0px;" onclick="start(event)" onmousemove="mousemove(event)"></canvas>
+        </div>
+    </body>
+</html>
