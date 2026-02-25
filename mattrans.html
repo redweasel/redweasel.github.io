@@ -9,7 +9,7 @@
             var MODE = "0";
             var SYM = true;
             var cellpos = [0, 0];
-            var markedpos = undefined;
+            var markedpos = null;
             let matrix = document.getElementById("matrix");
             function reset_hover() {
                 const table_cells = document.getElementsByTagName("td");
@@ -48,12 +48,16 @@
                 }
                 const table_cells = document.getElementsByTagName("td");
                 for (var i = 0; i < table_cells.length; i += 1) {
-                    table_cells[i].addEventListener("mouseover", function(e) {
+                    table_cells[i].addEventListener("mouseover", (e) => {
+                        // paint 0 and X on the last element
+                        if (e.buttons == 1) {
+                            if (MODE == "0") { set_cell(cellpos, "0"); if (SYM) set_cell([cellpos[1], cellpos[0]], "0"); }
+                            if (MODE == "X") { set_cell(cellpos, "X"); if (SYM) set_cell([cellpos[1], cellpos[0]], "X"); }
+                        }
                         const rc = e.srcElement.id.split(",");
                         const row = Number(rc[0]);
                         const col = Number(rc[1]);
                         cellpos = [row, col];
-                        //e.srcElement.innerHTML = "0";
                         const table_cells = document.getElementsByTagName("td");
                         for (var i = 0; i < table_cells.length; i += 1) {
                             const rc = table_cells[i].id.split(",");
@@ -73,7 +77,7 @@
                                 }
                             } else if (MODE == "G" || MODE == "S") {
                                 if (!SYM) {
-                                    if (markedpos != undefined) {
+                                    if (markedpos != null) {
                                         if (Math.abs(cellpos[0] - markedpos[0]) < Math.abs(cellpos[1] - markedpos[1])) {
                                             cond = col2 == col || col2 == markedpos[1];
                                             cond2 = row2 == markedpos[0] && col2 == col;
@@ -88,7 +92,7 @@
                                     }
                                 }
                                 else {
-                                    if (markedpos != undefined) {
+                                    if (markedpos != null) {
                                         cond2 = col2 == markedpos[1] && row2 == row;
                                         cond = col2 == markedpos[0] || row2 == markedpos[0] || row2 == row || col2 == row;
                                     }
@@ -134,7 +138,7 @@
                             else if (table_cells[i].innerHTML == "X") {
                                 table_cells[i].className = "cell x";
                             }
-                            if (markedpos != undefined) {
+                            if (markedpos != null) {
                                 if (row2 == markedpos[0] && col2 == markedpos[1]) {
                                     table_cells[i].className = "cell marked";
                                 }
@@ -143,7 +147,7 @@
                         //console.log(`${row} ${col}`);
                     });
                 }
-                markedpos = undefined;
+                markedpos = null;
             }
             function inc_size() {
                 SIZE += 1;
@@ -199,7 +203,7 @@
                 }
                 reset_hover();
                 MODE = mode;
-                markedpos = undefined;
+                markedpos = null;
             }
             function householder_left(pos) {
                 let occupied = false;
@@ -355,7 +359,7 @@
                             set_cell([cellpos[1], cellpos[0]], "X");
                         }
                     } else if (MODE == "G") {
-                        if (markedpos === undefined) {
+                        if (markedpos === null) {
                             if (table_cell.innerHTML == "X") {
                                 mark_cell(cellpos);
                                 return;
@@ -399,7 +403,7 @@
                                 set_cell(markedpos, "0");
                             }
                             // end/abort action
-                            markedpos = undefined;
+                            markedpos = null;
                         }
                         else if (SYM && cellpos[0] != markedpos[0]) {
                             let swap = get_cell([cellpos[0], markedpos[1]]) == "0"; // in this case the givens rotation is a swap
@@ -432,16 +436,18 @@
                                     }
                                 }
                             }
-                            set_cell(markedpos, "0");
-                            set_cell([markedpos[1], markedpos[0]], "0");
-                            markedpos = undefined;
+                            if (!swap) {
+                                set_cell(markedpos, "0");
+                                set_cell([markedpos[1], markedpos[0]], "0");
+                            }
+                            markedpos = null;
                         }
                         else {
                             // abort action
-                            markedpos = undefined;
+                            markedpos = null;
                         }
                     } else if (MODE == "S") {
-                        if (markedpos === undefined) {
+                        if (markedpos === null) {
                             if (table_cell.innerHTML == "X") {
                                 mark_cell(cellpos);
                                 return;
@@ -469,7 +475,7 @@
                                 }
                             }
                             // end/abort action
-                            markedpos = undefined;
+                            markedpos = null;
                         }
                         else if (SYM && get_cell([cellpos[0], markedpos[1]]) == "X" && cellpos[0] != markedpos[0]) {
                             // mixes the entire columns and rows
@@ -485,11 +491,11 @@
                             }
                             set_cell(markedpos, "0");
                             set_cell([markedpos[1], markedpos[0]], "0");
-                            markedpos = undefined;
+                            markedpos = null;
                         }
                         else {
                             // abort action
-                            markedpos = undefined;
+                            markedpos = null;
                         }
                     } else if (MODE == "HR") {
                         if ((!SYM && cellpos[1] < SIZE - 1 || SYM && cellpos[1] > 0) && (!SYM || cellpos[1] < cellpos[0])) {
