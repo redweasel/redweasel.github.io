@@ -7,8 +7,8 @@
         <link rel="stylesheet" href="style.css">
         <style>
             button {
-                aspect-ratio: 1;
                 width: auto;
+                aspect-ratio: 1;
                 background: none;
                 color: white;
                 border: 1px solid white;
@@ -16,6 +16,8 @@
                 font-size: 5.7vmin;
                 font-family: sans-serif;
                 font-weight: bold;
+                margin: 0px;
+                padding: 0px;
             }
             button:hover {
                 background: #FFF3;
@@ -23,19 +25,32 @@
             button:active {
                 background: #FFF6;
             }
-            .mini-board {
-                border: 3px solid white;
-                background: #624;
+            .board {
                 display: grid;
                 grid-template-columns: 33.33% 33.33% 33.33%;
+                width: auto;
                 aspect-ratio: 1;
-                width: 25vmin;
+                border: 3px solid white;
+                border-radius: 10px;
+                background: white;
+                overflow: hidden;
                 margin: auto;
             }
+            .mini-board {
+                display: grid;
+                grid-template-columns: 33.33% 33.33% 33.33%;
+                border: 3px solid white;
+                background: #624;
+                width: 25vmin;
+                height: 25vmin;
+                margin: 0px;
+                grid-auto-flow: row dense;
+            }
             svg {
-                grid-column: 1/-1;
-                grid-row: 1/-1;
+                grid-column: 1/4;
+                grid-row: 1/4;
                 pointer-events: none;
+                margin: 0px;
             }
         </style>
         <script>
@@ -226,58 +241,58 @@
     <body>
         <main>
             <h1 id="title" style="text-align: center; font-family: sans-serif; font-size: 7.5vmin; margin-top: 0px; color: white;">Super Tic-Tac-Toe</h1>
-            <div class="mini-board" style="width: auto; border-radius: 10px; background: white; overflow: hidden;">
-            <div id="d11" class="mini-board">
+            <div class="board">
+            <div id="d11" class="mini-board" style="grid-column: 1; grid-row: 1;">
                 <button id="11_11"></button><button id="11_12"></button><button id="11_13"></button>
                 <button id="11_21"></button><button id="11_22"></button><button id="11_23"></button>
                 <button id="11_31"></button><button id="11_32"></button><button id="11_33"></button>
                 <svg id="s11" viewBox="0 0 6 6"><line id="l11" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
-            <div id="d12" class="mini-board">
+            <div id="d12" class="mini-board" style="grid-column: 2; grid-row: 1;">
                 <button id="12_11"></button><button id="12_12"></button><button id="12_13"></button>
                 <button id="12_21"></button><button id="12_22"></button><button id="12_23"></button>
                 <button id="12_31"></button><button id="12_32"></button><button id="12_33"></button>
                 <svg id="s12" viewBox="0 0 6 6"><line id="l12" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
-            <div id="d13" class="mini-board">
+            <div id="d13" class="mini-board" style="grid-column: 3; grid-row: 1;">
                 <button id="13_11"></button><button id="13_12"></button><button id="13_13"></button>
                 <button id="13_21"></button><button id="13_22"></button><button id="13_23"></button>
                 <button id="13_31"></button><button id="13_32"></button><button id="13_33"></button>
                 <svg id="s13" viewBox="0 0 6 6"><line id="l13" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
 
-            <div id="d21" class="mini-board">
+            <div id="d21" class="mini-board" style="grid-column: 1; grid-row: 2;">
                 <button id="21_11"></button><button id="21_12"></button><button id="21_13"></button>
                 <button id="21_21"></button><button id="21_22"></button><button id="21_23"></button>
                 <button id="21_31"></button><button id="21_32"></button><button id="21_33"></button>
                 <svg id="s21" viewBox="0 0 6 6"><line id="l21" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
-            <div id="d22" class="mini-board">
+            <div id="d22" class="mini-board" style="grid-column: 2; grid-row: 2;">
                 <button id="22_11"></button><button id="22_12"></button><button id="22_13"></button>
                 <button id="22_21"></button><button id="22_22"></button><button id="22_23"></button>
                 <button id="22_31"></button><button id="22_32"></button><button id="22_33"></button>
                 <svg id="s22" viewBox="0 0 6 6"><line id="l22" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
-            <div id="d23" class="mini-board">
+            <div id="d23" class="mini-board" style="grid-column: 3; grid-row: 2;">
                 <button id="23_11"></button><button id="23_12"></button><button id="23_13"></button>
                 <button id="23_21"></button><button id="23_22"></button><button id="23_23"></button>
                 <button id="23_31"></button><button id="23_32"></button><button id="23_33"></button>
                 <svg id="s23" viewBox="0 0 6 6"><line id="l23" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
 
-            <div id="d31" class="mini-board">
+            <div id="d31" class="mini-board" style="grid-column: 1; grid-row: 3;">
                 <button id="31_11"></button><button id="31_12"></button><button id="31_13"></button>
                 <button id="31_21"></button><button id="31_22"></button><button id="31_23"></button>
                 <button id="31_31"></button><button id="31_32"></button><button id="31_33"></button>
                 <svg id="s31" viewBox="0 0 6 6"><line id="l31" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
-            <div id="d32" class="mini-board">
+            <div id="d32" class="mini-board" style="grid-column: 2; grid-row: 3;">
                 <button id="32_11"></button><button id="32_12"></button><button id="32_13"></button>
                 <button id="32_21"></button><button id="32_22"></button><button id="32_23"></button>
                 <button id="32_31"></button><button id="32_32"></button><button id="32_33"></button>
                 <svg id="s32" viewBox="0 0 6 6"><line id="l32" visibility="hidden" stroke-width="0.3" stroke="#F92" stroke-linecap="round"/></svg>
             </div>
-            <div id="d33" class="mini-board">
+            <div id="d33" class="mini-board" style="grid-column: 3; grid-row: 3;">
                 <button id="33_11"></button><button id="33_12"></button><button id="33_13"></button>
                 <button id="33_21"></button><button id="33_22"></button><button id="33_23"></button>
                 <button id="33_31"></button><button id="33_32"></button><button id="33_33"></button>
