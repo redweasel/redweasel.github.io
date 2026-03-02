@@ -40,8 +40,8 @@
         </style>
         <script>
             function do_move_callback(x, y, i, j, score) {
-                console.log(`score: ${score}, place at ${x+1}${y+1}_${i+1}${j+1}`);
-                c({target: document.getElementById(`${x+1}${y+1}_${i+1}${j+1}`)});
+                console.log(`score: ${score}, place at ${y+1}${x+1}_${j+1}${i+1}`);
+                c({target: document.getElementById(`${y+1}${x+1}_${j+1}${i+1}`)});
             }
             var agent_do_move = () => {};
             var player = 'X';
@@ -160,7 +160,7 @@
                     let pos_xy = [Number(e.target.id[0]), Number(e.target.id[1])];
                     let pos_ij = [Number(e.target.id[3]), Number(e.target.id[4])];
                     if (allowed != null && (pos_xy[0] != allowed[0] || pos_xy[1] != allowed[1])) {
-                        console.log("not allowed move");
+                        console.log(`not allowed move ${player}`);
                         return;
                     }
                     e.target.textContent = player;
@@ -195,7 +195,9 @@
                         }
                         update_highlight();
                         if (computer && player == 'O') {
-                            agent_do_move(pos_xy[0]-1, pos_xy[1]-1, pos_ij[0]-1, pos_ij[1]-1);
+                            requestAnimationFrame((e) => {
+                                agent_do_move(pos_xy[1]-1, pos_xy[0]-1, pos_ij[1]-1, pos_ij[0]-1);
+                            });
                             return;
                         }
                     }
