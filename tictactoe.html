@@ -194,7 +194,7 @@
                             allowed = null;
                         }
                         update_highlight();
-                        if (player == 'O') {
+                        if (computer && player == 'O') {
                             agent_do_move(pos_xy[0]-1, pos_xy[1]-1, pos_ij[0]-1, pos_ij[1]-1);
                             return;
                         }
@@ -213,8 +213,11 @@
                 }
             });
             function switch_computer(e) {
-                computer = !computer;
-                e.target.textContent = computer?"Against computer player":"2 Players";
+                if (!computer) {
+                    window.location.reload(); // can't currently start the bot at any point.
+                }
+                computer = false;
+                e.target.textContent = "2 Players";
             }
         </script>
     </head>
